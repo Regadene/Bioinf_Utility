@@ -12,7 +12,7 @@ from modules.fastq_filter_conditions import (
 
 
 def run_dna_rna_tools(*seq_oper):
-    # создание словаря с операциями
+    # definition of the supported operations dict
     operations = {
         "transcribe": transcribe,
         "reverse": reverse,
