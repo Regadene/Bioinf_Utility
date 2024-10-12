@@ -1,13 +1,17 @@
+import os.path
+
 from modules.dna_rna_tools import (
     transcribe,
     reverse,
     complement,
     reverse_complement,
 )
-from modules.fastq_filter_conditions import (
+from modules.fastq_utils import (
     is_seq_gc_in_bounds,
     is_seq_len_in_bounds,
     is_seq_quality_higher_than_threshold,
+    read_fastq_seq_from_file,
+    write_fastq_seq_to_file,
 )
 
 
@@ -40,7 +44,11 @@ def run_dna_rna_tools(*seq_oper):
 
 
 def filter_fastq(
-    seqs, gc_bounds=(0, 100), length_bounds=(0, 2**32), quality_threshold=0
+    input_fastq,
+    output_fastq=None,
+    gc_bounds=(0, 100),
+    length_bounds=(0, 2**32),
+    quality_threshold=0,
 ):
     if type(gc_bounds) is int and gc_bounds > 0:
         gc_bounds = (0, gc_bounds)
@@ -55,16 +63,32 @@ def filter_fastq(
     if type(quality_threshold) is not int or quality_threshold < 0:
         return "Wrong value for the quality_threshold argument"
 
-    filtered_fastq = {}
+    if output_fastq is None:
+        output_filtered_path = os.path.join(
+            "filtered", os.path.basename(input_fastq)
+        )
+    else:
+        output_filtered_path = os.path.join("filtered", output_fastq)
 
-    for seq_name, (seq, quality_seq) in seqs.items():
-        if (
-            is_seq_gc_in_bounds(seq, gc_bounds)
-            and is_seq_len_in_bounds(seq, length_bounds)
-            and is_seq_quality_higher_than_threshold(
-                quality_seq, quality_threshold
+    if not os.path.exists("filtered"):
+        os.mkdir("filtered")
+
+    with (
+        open(input_fastq, "r") as input_file,
+        open(output_filtered_path, "w") as output_file,
+    ):
+        seq_name, sequence, quality_seq = read_fastq_seq_from_file(input_file)
+        while seq_name:
+            if (
+                is_seq_gc_in_bounds(sequence, gc_bounds)
+                and is_seq_len_in_bounds(sequence, length_bounds)
+                and is_seq_quality_higher_than_threshold(
+                    quality_seq, quality_threshold
+                )
+            ):
+                write_fastq_seq_to_file(
+                    seq_name, sequence, quality_seq, output_file
+                )
+            seq_name, sequence, quality_seq = read_fastq_seq_from_file(
+                input_file
             )
-        ):
-            filtered_fastq[seq_name] = (seq, quality_seq)
-
-    return filtered_fastq
