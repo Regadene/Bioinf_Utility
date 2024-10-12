@@ -1,4 +1,4 @@
-# создание словаря для комплементарной последовательности ДНК
+# creating a dictionary for the complementary DNA sequence
 complement_dict = {
     "A": "T",
     "a": "t",
@@ -9,8 +9,9 @@ complement_dict = {
     "C": "G",
     "c": "g",
 }
-# создание словаря для комплементарной последовательности
-# из мРНК 5' - 3' в кДНК 3' - 5'
+
+# creating a dictionary for the complementary sequence
+# from mRNA 5' - 3' to cDNA 3' - 5'
 complement_dict_rna = {
     "A": "T",
     "a": "t",
@@ -21,7 +22,9 @@ complement_dict_rna = {
     "C": "G",
     "c": "g",
 }
-# создание словаря для транскрипции ДНК -> РНК (5' - 3' ДНК -> 5'-3' РНК)
+
+# creating a dictionary for transcription DNA -> RNA (5' - 3' DNA ->
+# 5' - 3' RNA)
 complement_dict_trans_dna_to_rna = {
     "A": "A",
     "a": "a",
@@ -34,17 +37,17 @@ complement_dict_trans_dna_to_rna = {
 }
 
 
-# проверка на то, что последовательность - РНК
+# check if the sequence is RNA
 def is_rna(sequence):
     return set(sequence) <= {"A", "a", "U", "u", "G", "g", "C", "c"}
 
 
-# проверка на то, что последовательность - ДНК
+# check if the sequence is DNA
 def is_dna(sequence):
     return set(sequence) <= {"A", "a", "T", "t", "G", "g", "C", "c"}
 
 
-# транскрипция ДНК -> РНК (транскрипция осуществляется только для ДНК)
+# transcription DNA -> RNA (transcription is performed only for DNA)
 def transcribe(sequence):
     if is_dna(sequence):
         rna_sequence = ""
@@ -53,13 +56,13 @@ def transcribe(sequence):
         return rna_sequence
 
 
-# разворачивает последовательность ДНК или РНК
+# reverses the DNA or RNA sequence
 def reverse(sequence):
     return sequence[::-1]
 
 
-# возвращает комплементарную последовательность
-# (для ДНК - комплементарную ДНК, для РНК - кДНК)
+# returns the complementary sequence
+# (for DNA - complementary DNA, for RNA - cDNA)
 def complement(sequence):
     if is_dna(sequence):
         complement_dna_sequence = ""
@@ -73,8 +76,8 @@ def complement(sequence):
         return complement_rna_to_dna_sequence
 
 
-# возвращает обратную комплементарную последовательность
-# (для ДНК - ДНК, для РНК - кДНК)
+# returns the reverse complementary sequence
+# (for DNA - DNA, for RNA - cDNA)
 def reverse_complement(sequence):
     reversed_sequence = reverse(sequence)
     reversed_complement_sequence = complement(reversed_sequence)
