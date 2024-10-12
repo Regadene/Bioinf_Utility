@@ -81,17 +81,20 @@ def filter_fastq(
     Filters FASTQ sequences based on GC content, sequence length, and quality
     score.
 
-    This function takes a dictionary of FASTQ sequences and filters them
-    according to specified GC content bounds, sequence length bounds,
-    and a minimum quality threshold.
+    This function reads sequences from an input FASTQ file and writes the
+    filtered sequences to an output FASTQ file in a 'filtered' directory.
+    Sequences are filtered according to specified GC content bounds, sequence
+    length bounds, and a minimum quality threshold.
 
     Parameters:
-    seqs (dict):
-        A dictionary where each key is a sequence name (str) and the value is
-        a tuple consisting of (sequence, quality scores), where:
-            - sequence (str): The DNA/RNA sequence.
-            - quality scores (str): A string in phred+33 encoding representing
-              the quality scores of the sequence.
+    input_fastq (str):
+        Path to the input FASTQ file containing the sequences to be filtered.
+
+    output_fastq (str, optional):
+        Name of the output file to which filtered sequences will be saved.
+        If not specified, the output file will be saved with the same base name
+        as the input file.
+        File will be saved to the 'filtered' subfolder in FASTQ format.
 
     gc_bounds (tuple or int, optional):
         A tuple specifying the minimum and maximum GC-content percentages
@@ -99,43 +102,32 @@ def filter_fastq(
         maximum GC content with a minimum of 0.
 
     length_bounds (tuple or int, optional):
-        A tuple specifying the minimum and maximum sequence lengths (default is
-        (0, 2**32)). If an integer is provided, it is treated as the maximum
-        sequence length with a minimum of 0.
+        A tuple specifying the minimum and maximum sequence lengths
+        (default is (0, 2**32)). If an integer is provided, it is treated as
+        the maximum sequence length with a minimum of 0.
 
     quality_threshold (int, optional):
-        The minimum acceptable quality score for sequences (default is 0). All
-        sequences must have a quality score greater than or equal to this
+        The minimum acceptable quality score for sequences (default is 0).
+        All sequences must have a quality score greater than or equal to this
         threshold to pass the filter.
 
     Returns:
-        dict: A dictionary of filtered sequences that meet all
-        conditions. The structure is the same as the input dictionary,
-        with sequence names as keys and tuples of (sequence, quality scores) as
-        values.
-
-        str: An error message if any of the input parameters are invalid.
+        None: Writes the filtered sequences to the specified output FASTQ file.
+        If any of the input parameters are invalid, returns the error message.
 
     Example:
-        fastq_data = {
-            "@SRX079804": (
-                "TGAAGCGTCGATAGAAGTTAGCAAACCCGCGGAACTTCCGTACATCAGACACATTCCGGGGGGTGGGCCAATCCATGATGCCTTTG",
-                "FF@FFBEEEEFFEFFD@EDEFFB=DFEEFFFE8FFE8EEDBFDFEEBE+E<C<C@FFFFF;;338<??D:@=DD:8DDDD@EE?EB"
-            ),
-            "@SRX079810": (
-                "CCTCAGCGTGGATTGCCGCTCATGCAGGAGCAGATAATCCCTTCGCCATCCCATTAAGCGCCGTTGTCGGTATTCC",
-                "FF@FFCFEECEBEC@@BBBBDFBBFFDFFEFFEB8FFFFFFFFEFCEB/>BBA@AFFFEEEEECE;ACD@DBBEEE"
-            ),
-        }
+        To filter sequences from a FASTQ file based on specific criteria:
 
-        filtered_data = filter_fastq( fastq_data, gc_bounds=(50, 65),
-        length_bounds=(3, 78), quality_threshold=30 )
+        filter_fastq(
+            "data/example_fastq.fastq",
+            "each_filter_output.fastq",
+            (40, 80),
+            (10, 20),
+            35
+        )
 
-        # Returns:
-        # {'@SRX079810': (
-        # 'CCTCAGCGTGGATTGCCGCTCATGCAGGAGCAGATAATCCCTTCGCCATCCCATTAAGCGCCGTTGTCGGTATTCC',
-        # 'FF@FFCFEECEBEC@@BBBBDFBBFFDFFEFFEB8FFFFFFFFEFCEB/>BBA@AFFFEEEEECE;ACD@DBBEEE')}
-
+        # This will write the filtered sequences to
+        # 'filtered/each_filter_output.fastq'.
     """
     if type(gc_bounds) is int and gc_bounds > 0:
         gc_bounds = (0, gc_bounds)
