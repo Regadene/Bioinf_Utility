@@ -1,4 +1,4 @@
-# Bioinformatics tools
+# Bioinformatics Tools
 
 ## DNA/RNA Tools and FASTQ Filtering Script
 
@@ -13,7 +13,7 @@ This repository provides a Python script for working with DNA/RNA sequences and 
   - Generating reverse complements.
 
 - **FASTQ File Filtering:**
-  - Filtering sequences based on GC content bounds.
+  - Reads from input FASTQ files and outputs filtered sequences to the file.
   - Filtering by sequence length.
   - Filtering by quality score threshold.
 
@@ -21,7 +21,7 @@ This repository provides a Python script for working with DNA/RNA sequences and 
 
 #### 1. DNA/RNA Sequence Operations
 
-You can run various operations on DNA/RNA sequences using the `run_dna_rna_tools()` function. 
+You can run various operations on DNA/RNA sequences using the `run_dna_rna_tools()` function.
 
 ```python
 from bioinf_utility import run_dna_rna_tools
@@ -37,29 +37,27 @@ results = run_dna_rna_tools("ttG", "AT", "ATc", "complement")
 
 #### 2. FASTQ Filtering Script
 
-You can filter fastq dictionaries using the `filter_fastq()` function.
+You can filter FASTQ sequences using the `filter_fastq()` function. This function can read sequences from an input FASTQ file and write the filtered sequences to an output FASTQ file.
 
 ```python
 from bioinf_utility import filter_fastq
 
-fastq_dict = {
-    "@SRX079804": (
-        "TGAAGCGTCGATAGAAGTTAGCAAACCCGCGGAACTTCCGTACATCAGACACATTCCGGGGGGTGGGCCAATCCATGATGCCTTTG",
-        "FF@FFBEEEEFFEFFD@EDEFFB=DFEEFFFE8FFE8EEDBFDFEEBE+E<C<C@FFFFF;;338<??D:@=DD:8DDDD@EE?EB"
-    ),
-    "@SRX079810": (
-        "CCTCAGCGTGGATTGCCGCTCATGCAGGAGCAGATAATCCCTTCGCCATCCCATTAAGCGCCGTTGTCGGTATTCC",
-        "FF@FFCFEECEBEC@@BBBBDFBBFFDFFEFFEB8FFFFFFFFEFCEB/>BBA@AFFFEEEEECE;ACD@DBBEEE"
-    ),
-}
-
-# Applying the filter with specific bounds
-filtered_dict = filter_fastq(
-    fastq_dict, gc_bounds=(50, 65), length_bounds=(3, 78), quality_threshold=30
+filter_fastq(
+    "data/example_fastq.fastq",
+    "each_filter_output.fastq",
+    (40, 80),
+    (10, 20),
+    35
 )
 
-# Expected Output:
-# {'@SRX079810': (
-# 'CCTCAGCGTGGATTGCCGCTCATGCAGGAGCAGATAATCCCTTCGCCATCCCATTAAGCGCCGTTGTCGGTATTCC',
-# 'FF@FFCFEECEBEC@@BBBBDFBBFFDFFEFFEB8FFFFFFFFEFCEB/>BBA@AFFFEEEEECE;ACD@DBBEEE')}
+# This will write the filtered sequences to
+# 'filtered/each_filter_output.fastq'.
 ```
+
+
+### Notes
+
+- Ensure your environment have the necessary permissions to create and write 
+  subfolders and files during execution.
+- Be noticed that output_fastq parameter of the filter_fastq is filename or 
+  not specified, paths containing directories are not supported.

@@ -1,13 +1,17 @@
+import os.path
+
 from modules.dna_rna_tools import (
     transcribe,
     reverse,
     complement,
     reverse_complement,
 )
-from modules.fastq_filter_conditions import (
+from modules.fastq_utils import (
     is_seq_gc_in_bounds,
     is_seq_len_in_bounds,
     is_seq_quality_higher_than_threshold,
+    read_fastq_seq_from_file,
+    write_fastq_seq_to_file,
 )
 
 
@@ -67,23 +71,30 @@ def run_dna_rna_tools(*seq_oper):
 
 
 def filter_fastq(
-    seqs, gc_bounds=(0, 100), length_bounds=(0, 2**32), quality_threshold=0
+    input_fastq,
+    output_fastq=None,
+    gc_bounds=(0, 100),
+    length_bounds=(0, 2**32),
+    quality_threshold=0,
 ):
     """
     Filters FASTQ sequences based on GC content, sequence length, and quality
     score.
 
-    This function takes a dictionary of FASTQ sequences and filters them
-    according to specified GC content bounds, sequence length bounds,
-    and a minimum quality threshold.
+    This function reads sequences from an input FASTQ file and writes the
+    filtered sequences to an output FASTQ file in a 'filtered' directory.
+    Sequences are filtered according to specified GC content bounds, sequence
+    length bounds, and a minimum quality threshold.
 
     Parameters:
-    seqs (dict):
-        A dictionary where each key is a sequence name (str) and the value is
-        a tuple consisting of (sequence, quality scores), where:
-            - sequence (str): The DNA/RNA sequence.
-            - quality scores (str): A string in phred+33 encoding representing
-              the quality scores of the sequence.
+    input_fastq (str):
+        Path to the input FASTQ file containing the sequences to be filtered.
+
+    output_fastq (str, optional):
+        Name of the output file to which filtered sequences will be saved.
+        If not specified, the output file will be saved with the same base name
+        as the input file.
+        File will be saved to the 'filtered' subfolder in FASTQ format.
 
     gc_bounds (tuple or int, optional):
         A tuple specifying the minimum and maximum GC-content percentages
@@ -91,43 +102,32 @@ def filter_fastq(
         maximum GC content with a minimum of 0.
 
     length_bounds (tuple or int, optional):
-        A tuple specifying the minimum and maximum sequence lengths (default is
-        (0, 2**32)). If an integer is provided, it is treated as the maximum
-        sequence length with a minimum of 0.
+        A tuple specifying the minimum and maximum sequence lengths
+        (default is (0, 2**32)). If an integer is provided, it is treated as
+        the maximum sequence length with a minimum of 0.
 
     quality_threshold (int, optional):
-        The minimum acceptable quality score for sequences (default is 0). All
-        sequences must have a quality score greater than or equal to this
+        The minimum acceptable quality score for sequences (default is 0).
+        All sequences must have a quality score greater than or equal to this
         threshold to pass the filter.
 
     Returns:
-        dict: A dictionary of filtered sequences that meet all
-        conditions. The structure is the same as the input dictionary,
-        with sequence names as keys and tuples of (sequence, quality scores) as
-        values.
-
-        str: An error message if any of the input parameters are invalid.
+        None: Writes the filtered sequences to the specified output FASTQ file.
+        If any of the input parameters are invalid, returns the error message.
 
     Example:
-        fastq_data = {
-            "@SRX079804": (
-                "TGAAGCGTCGATAGAAGTTAGCAAACCCGCGGAACTTCCGTACATCAGACACATTCCGGGGGGTGGGCCAATCCATGATGCCTTTG",
-                "FF@FFBEEEEFFEFFD@EDEFFB=DFEEFFFE8FFE8EEDBFDFEEBE+E<C<C@FFFFF;;338<??D:@=DD:8DDDD@EE?EB"
-            ),
-            "@SRX079810": (
-                "CCTCAGCGTGGATTGCCGCTCATGCAGGAGCAGATAATCCCTTCGCCATCCCATTAAGCGCCGTTGTCGGTATTCC",
-                "FF@FFCFEECEBEC@@BBBBDFBBFFDFFEFFEB8FFFFFFFFEFCEB/>BBA@AFFFEEEEECE;ACD@DBBEEE"
-            ),
-        }
+        To filter sequences from a FASTQ file based on specific criteria:
 
-        filtered_data = filter_fastq( fastq_data, gc_bounds=(50, 65),
-        length_bounds=(3, 78), quality_threshold=30 )
+        filter_fastq(
+            "data/example_fastq.fastq",
+            "each_filter_output.fastq",
+            (40, 80),
+            (10, 20),
+            35
+        )
 
-        # Returns:
-        # {'@SRX079810': (
-        # 'CCTCAGCGTGGATTGCCGCTCATGCAGGAGCAGATAATCCCTTCGCCATCCCATTAAGCGCCGTTGTCGGTATTCC',
-        # 'FF@FFCFEECEBEC@@BBBBDFBBFFDFFEFFEB8FFFFFFFFEFCEB/>BBA@AFFFEEEEECE;ACD@DBBEEE')}
-
+        # This will write the filtered sequences to
+        # 'filtered/each_filter_output.fastq'.
     """
     if type(gc_bounds) is int and gc_bounds > 0:
         gc_bounds = (0, gc_bounds)
@@ -142,16 +142,32 @@ def filter_fastq(
     if type(quality_threshold) is not int or quality_threshold < 0:
         return "Wrong value for the quality_threshold argument"
 
-    filtered_fastq = {}
+    if output_fastq is None:
+        output_filtered_path = os.path.join(
+            "filtered", os.path.basename(input_fastq)
+        )
+    else:
+        output_filtered_path = os.path.join("filtered", output_fastq)
 
-    for seq_name, (seq, quality_seq) in seqs.items():
-        if (
-            is_seq_gc_in_bounds(seq, gc_bounds)
-            and is_seq_len_in_bounds(seq, length_bounds)
-            and is_seq_quality_higher_than_threshold(
-                quality_seq, quality_threshold
+    if not os.path.exists("filtered"):
+        os.mkdir("filtered")
+
+    with (
+        open(input_fastq, "r") as input_file,
+        open(output_filtered_path, "w") as output_file,
+    ):
+        seq_name, sequence, quality_seq = read_fastq_seq_from_file(input_file)
+        while seq_name:
+            if (
+                is_seq_gc_in_bounds(sequence, gc_bounds)
+                and is_seq_len_in_bounds(sequence, length_bounds)
+                and is_seq_quality_higher_than_threshold(
+                    quality_seq, quality_threshold
+                )
+            ):
+                write_fastq_seq_to_file(
+                    seq_name, sequence, quality_seq, output_file
+                )
+            seq_name, sequence, quality_seq = read_fastq_seq_from_file(
+                input_file
             )
-        ):
-            filtered_fastq[seq_name] = (seq, quality_seq)
-
-    return filtered_fastq
