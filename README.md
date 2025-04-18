@@ -6,33 +6,44 @@ This repository provides a Python script for working with DNA/RNA sequences and 
 
 ### Features
 
-- **DNA/RNA Sequence Operations:**
+- **DNA/RNA/Amino Sequence Classes:**
   - Transcription from DNA to RNA.
   - Reversing sequences.
   - Computing complements of sequences.
   - Generating reverse complements.
+  - Counting molecular weight for Amino sequences
 
 - **FASTQ File Filtering:**
   - Reads from input FASTQ files and outputs filtered sequences to the file.
   - Filtering by sequence length.
   - Filtering by quality score threshold.
+  - CLI script support
 
-### Usage
+#### 1. Biological Sequence Classes
 
-#### 1. DNA/RNA Sequence Operations
-
-You can run various operations on DNA/RNA sequences using the `run_dna_rna_tools()` function.
-
+This module provides object-oriented representations and utilities for handling DNA, RNA, and amino acid sequences. It includes methods for complementing, reversing, transcribing, and computing molecular weights of biological sequences.
+##### Usage
 ```python
-from bioinf_utility import run_dna_rna_tools
+from biological_sequences import DNASequence, RNASequence, AminoAcidSequence
 
-# Example usage for a single sequence
-result = run_dna_rna_tools("ATG", "transcribe")
-# Returns: "AUG"
+# Create a DNA sequence
+dna = DNASequence("ATGCGT")
 
-# Example usage for multiple sequences
-results = run_dna_rna_tools("ttG", "AT", "ATc", "complement")
-# Returns: ["aaC", "TA", "TAg"]
+# Transcribe DNA to RNA
+rna = dna.transcribe()
+
+# Get reverse complement of DNA
+rev_comp = dna.reverse_complement()
+print(rev_comp) # Output: ACGCAT
+
+# Create an RNA sequence and get its complement
+rna_seq = RNASequence("AUGC")
+print(rna_seq.complement()) # Output: TACG
+
+# Create an amino acid sequence
+protein = AminoAcidSequence("MALWMRLLPL")
+weight = protein.get_molecular_weight()
+print(weight)  # Output: 1405.8
 ```
 
 #### 2. FASTQ Filtering Script

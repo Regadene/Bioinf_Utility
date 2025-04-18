@@ -3,69 +3,6 @@ from Bio import SeqIO
 from Bio.SeqUtils import gc_fraction
 import logging
 
-from modules.dna_rna_tools import (
-    transcribe,
-    reverse,
-    complement,
-    reverse_complement,
-)
-
-
-def run_dna_rna_tools(*seq_oper):
-    """
-    Applies a specified DNA/RNA operation to one or more sequences.
-
-    This function takes a variable number of arguments, where the first but not
-    last arguments are sequences (DNA/RNA), and the last argument is the
-    operation to be applied to these sequences.
-    Supported operations include 'transcribe', 'reverse', 'complement',
-    and 'reverse_complement'.
-
-    Parameters: *seq_oper: A variable-length argument list. - The first but
-    not last arguments are expected to be sequences (str). - The last
-    argument is the operation to apply (str). It must be one of the
-    following: 'transcribe', 'reverse', 'complement', 'reverse_complement'.
-
-    Returns: list or str: If a single sequence and operation are provided,
-    the function returns the one string result. If multiple sequences are
-    provided, an array of results for each sequence is returned. If the
-    operation is invalid or the number of arguments is incorrect,
-    the function return the error message.
-
-    Example:
-        result = run_dna_rna_tools("ATG", "transcribe")
-        # Returns: "AUG"
-
-        results = run_dna_rna_tools("ttG", "AT", "ATc", "complement")
-        # Returns: ["aaC", "TA", "TAg"]
-    """
-    # definition of the supported operations dict
-    operations = {
-        "transcribe": transcribe,
-        "reverse": reverse,
-        "complement": complement,
-        "reverse_complement": reverse_complement,
-    }
-    if len(seq_oper) == 2:
-        sequence, operation = seq_oper[0], seq_oper[1]
-        if operation in operations:
-            return operations[operation](sequence)
-
-    elif len(seq_oper) > 2:
-        operation, sequences = seq_oper[-1], seq_oper[:-1]
-        results = []
-        for sequence in sequences:
-            if operation in operations:
-                operation_result = operations[operation](sequence)
-                results.append(operation_result)
-            else:
-                return "Wrong operation"
-        return results
-
-    else:
-        return "Wrong amount of arguments"
-
-
 def filter_fastq(
     input_fastq: str,
     output_fastq: str = None,
