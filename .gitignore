@@ -4,3 +4,5 @@
 /.idea
 /tests/output_data/
 /tests/filtered/
+__pycache__
+filtered

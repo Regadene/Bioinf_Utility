@@ -1,17 +1,13 @@
 import os.path
+from Bio import SeqIO
+from Bio.SeqUtils import gc_fraction
+from Bio.SeqIO import QualityIO
 
 from modules.dna_rna_tools import (
     transcribe,
     reverse,
     complement,
     reverse_complement,
-)
-from modules.fastq_utils import (
-    is_seq_gc_in_bounds,
-    is_seq_len_in_bounds,
-    is_seq_quality_higher_than_threshold,
-    read_fastq_seq_from_file,
-    write_fastq_seq_to_file,
 )
 
 
@@ -152,22 +148,17 @@ def filter_fastq(
     if not os.path.exists("filtered"):
         os.mkdir("filtered")
 
-    with (
-        open(input_fastq, "r") as input_file,
-        open(output_filtered_path, "w") as output_file,
-    ):
-        seq_name, sequence, quality_seq = read_fastq_seq_from_file(input_file)
-        while seq_name:
-            if (
-                is_seq_gc_in_bounds(sequence, gc_bounds)
-                and is_seq_len_in_bounds(sequence, length_bounds)
-                and is_seq_quality_higher_than_threshold(
-                    quality_seq, quality_threshold
-                )
-            ):
-                write_fastq_seq_to_file(
-                    seq_name, sequence, quality_seq, output_file
-                )
-            seq_name, sequence, quality_seq = read_fastq_seq_from_file(
-                input_file
-            )
+    filtered_records = []
+    for record in SeqIO.parse(input_fastq, "fastq"):
+        seq_len = len(record.seq)
+        gc = gc_fraction(record.seq) * 100
+        quality_seq = sum(QualityIO.QualityIO(record)) / seq_len
+
+        if (
+            length_bounds[0] <= seq_len <= length_bounds[1]
+            and gc_bounds[0] <= gc <= gc_bounds[1]
+            and quality_seq >= quality_threshold
+        ):
+            filtered_records.append(record)
+
+    SeqIO.write(filtered_records, output_filtered_path, "fastq")
