@@ -67,11 +67,11 @@ def run_dna_rna_tools(*seq_oper):
 
 
 def filter_fastq(
-    input_fastq,
-    output_fastq=None,
-    gc_bounds=(0, 100),
-    length_bounds=(0, 2**32),
-    quality_threshold=0,
+    input_fastq: str,
+    output_fastq: str = None,
+    gc_bounds: list[int] = [0, 100],
+    length_bounds: list[int] = [0, 2**32],
+    quality_threshold: int = 0,
 ):
     """
     Filters FASTQ sequences based on GC content, sequence length, and quality
@@ -92,14 +92,14 @@ def filter_fastq(
         as the input file.
         File will be saved to the 'filtered' subfolder in FASTQ format.
 
-    gc_bounds (tuple or int, optional):
-        A tuple specifying the minimum and maximum GC-content percentages
-        (default is (0, 100)). If an integer is provided, it is treated as the
+    gc_bounds (list or int, optional):
+        A list specifying the minimum and maximum GC-content percentages
+        (default is [0, 100]). If an integer is provided, it is treated as the
         maximum GC content with a minimum of 0.
 
-    length_bounds (tuple or int, optional):
-        A tuple specifying the minimum and maximum sequence lengths
-        (default is (0, 2**32)). If an integer is provided, it is treated as
+    length_bounds (list or int, optional):
+        A list specifying the minimum and maximum sequence lengths
+        (default is [0, 2**32]). If an integer is provided, it is treated as
         the maximum sequence length with a minimum of 0.
 
     quality_threshold (int, optional):
@@ -127,16 +127,26 @@ def filter_fastq(
     """
     if type(gc_bounds) is int and gc_bounds > 0:
         gc_bounds = (0, gc_bounds)
-    elif type(gc_bounds) is not tuple and len(gc_bounds) != 2:
-        return "Wrong value for the gc_bounds argument"
+    elif type(gc_bounds) is not list \
+            and len(gc_bounds) != 2 \
+            and gc_bounds[0] is not int \
+            and gc_bounds[1] is not int \
+            and gc_bounds[0] > gc_bounds[1]:
+        raise ValueError(
+            "gc_bounds should be positive int or list of the 2 ints with the second value greater than first")
 
     if type(length_bounds) is int and length_bounds > 0:
         length_bounds = (0, length_bounds)
-    elif type(length_bounds) is not tuple and len(length_bounds) != 2:
-        return "Wrong value for the length_bounds argument"
+    elif type(length_bounds) is not list \
+            and len(length_bounds) != 2 \
+            and length_bounds[0] is not int \
+            and length_bounds[1] is not int \
+            and length_bounds[0] > length_bounds[1]:
+        raise ValueError(
+            "length_bounds should be positive int or list of the 2 ints with the second value greater than first")
 
     if type(quality_threshold) is not int or quality_threshold < 0:
-        return "Wrong value for the quality_threshold argument"
+        return ValueError("quality_threshold should be positive int")
 
     if output_fastq is None:
         output_filtered_path = os.path.join(
@@ -152,7 +162,7 @@ def filter_fastq(
     for record in SeqIO.parse(input_fastq, "fastq"):
         seq_len = len(record.seq)
         gc = gc_fraction(record.seq) * 100
-        quality_seq = sum(QualityIO.QualityIO(record)) / seq_len
+        quality_seq = sum(record.letter_annotations["phred_quality"]) / seq_len
 
         if (
             length_bounds[0] <= seq_len <= length_bounds[1]
