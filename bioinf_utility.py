@@ -1,7 +1,7 @@
 import os.path
 from Bio import SeqIO
 from Bio.SeqUtils import gc_fraction
-from Bio.SeqIO import QualityIO
+import logging
 
 from modules.dna_rna_tools import (
     transcribe,
@@ -69,8 +69,8 @@ def run_dna_rna_tools(*seq_oper):
 def filter_fastq(
     input_fastq: str,
     output_fastq: str = None,
-    gc_bounds: list[int] = [0, 100],
-    length_bounds: list[int] = [0, 2**32],
+    gc_bounds: int | list[int] = [0, 100],
+    length_bounds: int | list[int] = [0, 2**32],
     quality_threshold: int = 0,
 ):
     """
@@ -125,27 +125,27 @@ def filter_fastq(
         # This will write the filtered sequences to
         # 'filtered/each_filter_output.fastq'.
     """
+    logging.info("Checking input arguments")
     if type(gc_bounds) is int and gc_bounds > 0:
         gc_bounds = (0, gc_bounds)
     elif type(gc_bounds) is not list \
-            and len(gc_bounds) != 2 \
-            and gc_bounds[0] is not int \
-            and gc_bounds[1] is not int \
-            and gc_bounds[0] > gc_bounds[1]:
+            or len(gc_bounds) != 2 \
+            or gc_bounds[0] > gc_bounds[1]:
+        logging.error("Invalid gc_bounds: %s", gc_bounds)
         raise ValueError(
             "gc_bounds should be positive int or list of the 2 ints with the second value greater than first")
 
     if type(length_bounds) is int and length_bounds > 0:
         length_bounds = (0, length_bounds)
     elif type(length_bounds) is not list \
-            and len(length_bounds) != 2 \
-            and length_bounds[0] is not int \
-            and length_bounds[1] is not int \
-            and length_bounds[0] > length_bounds[1]:
+            or len(length_bounds) != 2 \
+            or length_bounds[0] > length_bounds[1]:
+        logging.error("Invalid length_bounds: %s", length_bounds)
         raise ValueError(
             "length_bounds should be positive int or list of the 2 ints with the second value greater than first")
 
     if type(quality_threshold) is not int or quality_threshold < 0:
+        logging.error("Invalid quality_threshold: %s", quality_threshold)
         return ValueError("quality_threshold should be positive int")
 
     if output_fastq is None:
@@ -157,9 +157,13 @@ def filter_fastq(
 
     if not os.path.exists("filtered"):
         os.mkdir("filtered")
+        logging.info("Created 'filtered' directory.")
+    logging.info("Input arguments are corrrect, start filtering process")
 
     filtered_records = []
+    total_input_records_amount = 0
     for record in SeqIO.parse(input_fastq, "fastq"):
+        total_input_records_amount += 1
         seq_len = len(record.seq)
         gc = gc_fraction(record.seq) * 100
         quality_seq = sum(record.letter_annotations["phred_quality"]) / seq_len
@@ -172,3 +176,7 @@ def filter_fastq(
             filtered_records.append(record)
 
     SeqIO.write(filtered_records, output_filtered_path, "fastq")
+    logging.info(
+        "Filtering complete. %d of %d sequences passed the filters and were saved to '%s'.",
+        len(filtered_records), total_input_records_amount, output_filtered_path
+    )

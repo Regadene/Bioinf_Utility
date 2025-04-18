@@ -6,3 +6,4 @@
 /tests/filtered/
 __pycache__
 filtered
+*.log

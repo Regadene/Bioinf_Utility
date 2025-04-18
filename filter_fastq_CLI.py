@@ -66,19 +66,26 @@ def parse_args_fastq_fitering():
 
 
 def main():
-    parser = parse_args_fastq_fitering()
-    args = parser.parse_args()
-    
     try:
+        parser = parse_args_fastq_fitering()
+        args = parser.parse_args()
+        logging.info("FASTQ filtering started with arguments: %s", args)
+    
         filter_fastq(
             input_fastq=args.input,
             output_fastq=args.output,
-            gc_bounds=args.gc_bounds,
-            length_bounds=args.length_bounds,
+            gc_bounds=args.gc_bounds[0] if len(args.gc_bounds) == 1 else args.gc_bounds,
+            length_bounds=args.length_bounds[0] if len(args.length_bounds) == 1 else args.length_bounds,
             quality_threshold=args.quality_threshold,
         )
+        logging.info("FASTQ filtering finished successfully.")
     except Exception as e:
-        logging.error(str(e))
+        logging.error("FASTQ filtering failed with %s error: %s", type(e).__name__, str(e))
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        filename="filter_fastq.log",
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(message)s"
+    )
     main()
