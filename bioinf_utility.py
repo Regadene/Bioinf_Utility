@@ -3,6 +3,7 @@ from Bio import SeqIO
 from Bio.SeqUtils import gc_fraction
 import logging
 
+
 def filter_fastq(
     input_fastq: str,
     output_fastq: str = None,
@@ -69,30 +70,34 @@ def filter_fastq(
 
     if type(gc_bounds) is int and gc_bounds > 0:
         gc_bounds = (0, gc_bounds)
-    elif type(gc_bounds) is not list \
-            or len(gc_bounds) != 2 \
-            or gc_bounds[0] > gc_bounds[1]:
+    elif (
+        type(gc_bounds) is not list
+        or len(gc_bounds) != 2
+        or gc_bounds[0] > gc_bounds[1]
+    ):
         logging.error("Invalid gc_bounds: %s", gc_bounds)
         raise ValueError(
-            "gc_bounds should be positive int or list of the 2 ints with the second value greater than first")
+            "gc_bounds should be positive int or list of the 2 ints with the second value greater than first"
+        )
 
     if type(length_bounds) is int and length_bounds > 0:
         length_bounds = (0, length_bounds)
-    elif type(length_bounds) is not list \
-            or len(length_bounds) != 2 \
-            or length_bounds[0] > length_bounds[1]:
+    elif (
+        type(length_bounds) is not list
+        or len(length_bounds) != 2
+        or length_bounds[0] > length_bounds[1]
+    ):
         logging.error("Invalid length_bounds: %s", length_bounds)
         raise ValueError(
-            "length_bounds should be positive int or list of the 2 ints with the second value greater than first")
+            "length_bounds should be positive int or list of the 2 ints with the second value greater than first"
+        )
 
     if type(quality_threshold) is not int or quality_threshold < 0:
         logging.error("Invalid quality_threshold: %s", quality_threshold)
         raise ValueError("quality_threshold should be positive int")
 
     if output_fastq is None:
-        output_filtered_path = os.path.join(
-            "filtered", os.path.basename(input_fastq)
-        )
+        output_filtered_path = os.path.join("filtered", os.path.basename(input_fastq))
     else:
         output_filtered_path = os.path.join("filtered", output_fastq)
 
@@ -119,5 +124,7 @@ def filter_fastq(
     SeqIO.write(filtered_records, output_filtered_path, "fastq")
     logging.info(
         "Filtering complete. %d of %d sequences passed the filters and were saved to '%s'.",
-        len(filtered_records), total_input_records_amount, output_filtered_path
+        len(filtered_records),
+        total_input_records_amount,
+        output_filtered_path,
     )

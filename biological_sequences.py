@@ -43,26 +43,26 @@ RNA_ALPHABET = set("AUGCaugc")
 AMINO_ALPHABET = set("ACDEFGHIKLMNPQRSTVWY")
 
 AMINO_MOLECULAR_WEIGHT_DICT = {
-    "A":	89.1,
-    "R":	174.2,
-    "N":	132.1,
-    "D":	133.1,
-    "C":	121.2,
-    "E":	147.1,
-    "Q":	146.2,
-    "G":	75.1,
-    "H":	155.2,
-    "I":	131.2,
-    "L":	131.2,
-    "K":	146.2,
-    "M":	149.2,
-    "F":	165.2,
-    "P":	115.1,
-    "S":	105.1,
-    "T":	119.1,
-    "W":	204.2,
-    "Y":	181.2,
-    "V":	117.1
+    "A": 89.1,
+    "R": 174.2,
+    "N": 132.1,
+    "D": 133.1,
+    "C": 121.2,
+    "E": 147.1,
+    "Q": 146.2,
+    "G": 75.1,
+    "H": 155.2,
+    "I": 131.2,
+    "L": 131.2,
+    "K": 146.2,
+    "M": 149.2,
+    "F": 165.2,
+    "P": 115.1,
+    "S": 105.1,
+    "T": 119.1,
+    "W": 204.2,
+    "Y": 181.2,
+    "V": 117.1,
 }
 
 
@@ -82,7 +82,7 @@ class BiologicalSequence(ABC):
         return self.sequence
 
     def __repr__(self):
-        return f"{self.__class__.__name__}(sequence=\"{self.sequence}\")"
+        return f'{self.__class__.__name__}(sequence="{self.sequence}")'
 
     def is_sequence_correct(self):
         return set(self.sequence).issubset(self.alphabet)
@@ -108,7 +108,9 @@ class DNASequence(NucleicAcidSequence):
     complement_dict = COMPLEMENT_DICT_DNA
 
     def transcribe(self):
-        return RNASequence("".join(COMPLEMENT_DICT_TRANS_DNA_TO_RNA[n] for n in self.sequence))
+        return RNASequence(
+            "".join(COMPLEMENT_DICT_TRANS_DNA_TO_RNA[n] for n in self.sequence)
+        )
 
 
 class RNASequence(NucleicAcidSequence):
