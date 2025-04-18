@@ -126,6 +126,10 @@ def filter_fastq(
         # 'filtered/each_filter_output.fastq'.
     """
     logging.info("Checking input arguments")
+
+    if not os.path.exists(input_fastq):
+        raise FileNotFoundError("Input fastq file does not exists")
+
     if type(gc_bounds) is int and gc_bounds > 0:
         gc_bounds = (0, gc_bounds)
     elif type(gc_bounds) is not list \
@@ -146,7 +150,7 @@ def filter_fastq(
 
     if type(quality_threshold) is not int or quality_threshold < 0:
         logging.error("Invalid quality_threshold: %s", quality_threshold)
-        return ValueError("quality_threshold should be positive int")
+        raise ValueError("quality_threshold should be positive int")
 
     if output_fastq is None:
         output_filtered_path = os.path.join(
